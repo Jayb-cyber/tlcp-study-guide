@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intensive Study Tracking Portal & Prompt Generator</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .modal-backdrop {
+      background-color: rgba(2, 6, 23, 0.80);
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col selection:bg-emerald-500/30 selection:text-emerald-200">
+
+  <!-- Top Navbar -->
+  <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-emerald-500 to-indigo-500 p-[1px] shadow-lg shadow-emerald-950/30">
+          <div class="w-full h-full bg-slate-900 rounded-[11px] flex items-center justify-center">
+            <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">ScholarOS Curriculum &amp; Prompt Engine</h1>
+            <span class="hidden md:inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700">v3.0 &bull; 5 Tracks (50 Modules)</span>
+          </div>
+          <p class="text-xs text-slate-400">Calculus &bull; PhD Econometrics &bull; Political Economy/IPE/IR &bull; Mandarin (B2&rarr;C1) &bull; Japanese (C1)</p>
+        </div>
+      </div>
+
+      <!-- Backup & Persistence Controls -->
+      <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+        <span id="storage-indicator" class="hidden sm:inline-flex items-center gap-1.5 text-xs text-slate-400 bg-slate-800/80 px-2.5 py-1.5 rounded-lg border border-slate-700/70">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>Auto-saved locally</span>
+        </span>
+
+        <button id="btn-export-json" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer">
+          <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Export JSON
+        </button>
+
+        <button id="btn-import-trigger" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer">
+          <svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          Import JSON
+        </button>
+        <input id="input-import-json" type="file" accept=".json,application/json" class="hidden">
+
+        <button id="btn-reset-trigger" type="button" title="Reset All Progress" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800/70 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 border border-slate-700/70 hover:border-rose-800/60 transition-colors cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          <span class="hidden lg:inline">Reset</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Dashboard Header Metrics -->
+    <section aria-label="Curriculum Progress Metrics" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
+      <!-- Overall Progress Card -->
+      <div class="bg-slate-800/90 border border-slate-700/80 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Overall Progress</span>
+            <span id="metric-overall-pct" class="text-lg font-bold text-white">0%</span>
+          </div>
+          <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden mt-2.5 border border-slate-700/60">
+            <div id="bar-overall" class="bg-gradient-to-r from-cyan-500 via-emerald-500 to-indigo-500 h-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
+          <span id="metric-overall-counts">0 / 50 Mastered</span>
+          <span id="metric-overall-avg" class="font-mono text-slate-300">Avg: —</span>
+        </div>
+      </div>
+
+      <!-- Track 1 Card: Calculus Foundations -->
+      <div class="bg-slate-800/90 border border-cyan-500/30 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-cyan-400">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+              Calculus Series
+            </span>
+            <span id="metric-calculus-count" class="text-xs font-bold text-cyan-300 font-mono">0 / 10</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-0.5">Derivatives, Integrals &amp; Matrix Calc</p>
+          <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden mt-2 border border-slate-700/60">
+            <div id="bar-calculus" class="bg-cyan-500 h-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
+          <span id="status-breakdown-calculus">0 Active &bull; 0 Review</span>
+          <span id="avg-calculus" class="text-cyan-300 font-mono">★ —</span>
+        </div>
+      </div>
+
+      <!-- Track 2 Card: Econometrics -->
+      <div class="bg-slate-800/90 border border-emerald-500/30 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-emerald-400">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              Econometrics
+            </span>
+            <span id="metric-econ-count" class="text-xs font-bold text-emerald-300 font-mono">0 / 10</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-0.5">OLS, Causal ID, Panel &amp; MLE</p>
+          <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden mt-2 border border-slate-700/60">
+            <div id="bar-econ" class="bg-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
+          <span id="status-breakdown-econ">0 Active &bull; 0 Review</span>
+          <span id="avg-econ" class="text-emerald-300 font-mono">★ —</span>
+        </div>
+      </div>
+
+      <!-- Track 3 Card: Political Economy / IPE / IR -->
+      <div class="bg-slate-800/90 border border-rose-500/30 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-rose-400">
+              <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+              PolEcon / IPE / IR
+            </span>
+            <span id="metric-polecon-count" class="text-xs font-bold text-rose-300 font-mono">0 / 10</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-0.5">Institutions, Trade &amp; Statecraft</p>
+          <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden mt-2 border border-slate-700/60">
+            <div id="bar-polecon" class="bg-rose-500 h-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
+          <span id="status-breakdown-polecon">0 Active &bull; 0 Review</span>
+          <span id="avg-polecon" class="text-rose-300 font-mono">★ —</span>
+        </div>
+      </div>
+
+      <!-- Track 4 Card: Taiwanese Mandarin -->
+      <div class="bg-slate-800/90 border border-amber-500/30 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-400">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              Mandarin B2&rarr;C1
+            </span>
+            <span id="metric-mandarin-count" class="text-xs font-bold text-amber-300 font-mono">0 / 10</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-0.5">Academic &amp; Policy 繁體中文</p>
+          <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden mt-2 border border-slate-700/60">
+            <div id="bar-mandarin" class="bg-amber-500 h-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
+          <span id="status-breakdown-mandarin">0 Active &bull; 0 Review</span>
+          <span id="avg-mandarin" class="text-amber-300 font-mono">★ —</span>
+        </div>
+      </div>
+
+      <!-- Track 5 Card: Academic Japanese -->
+      <div class="bg-slate-800/90 border border-indigo-500/30 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-indigo-400">
+              <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+              Japanese C1
+            </span>
+            <span id="metric-japanese-count" class="text-xs font-bold text-indigo-300 font-mono">0 / 10</span>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-0.5">Workplace &amp; Academic 日本語</p>
+          <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden mt-2 border border-slate-700/60">
+            <div id="bar-japanese" class="bg-indigo-500 h-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
+          <span id="status-breakdown-japanese">0 Active &bull; 0 Review</span>
+          <span id="avg-japanese" class="text-indigo-300 font-mono">★ —</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter & Search Controls Bar -->
+    <section aria-label="Filters and Search" class="bg-slate-800/90 border border-slate-700/80 rounded-xl p-4 space-y-4">
+      <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+        <!-- Quick-Filter Track Tabs -->
+        <div class="flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Track Filter Tabs">
+          <button type="button" data-track-tab="all" class="track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-slate-100 text-slate-900 shadow-sm">
+            All Tracks <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-900/15 font-mono">50</span>
+          </button>
+          <button type="button" data-track-tab="calculus" class="track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-slate-900/70 text-cyan-300 hover:bg-cyan-950/50 border border-cyan-500/30">
+            Calculus Foundations <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-cyan-500/20 text-cyan-200 font-mono">10</span>
+          </button>
+          <button type="button" data-track-tab="econometrics" class="track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-slate-900/70 text-emerald-300 hover:bg-emerald-950/50 border border-emerald-500/30">
+            Econometrics <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-200 font-mono">10</span>
+          </button>
+          <button type="button" data-track-tab="polecon" class="track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-slate-900/70 text-rose-300 hover:bg-rose-950/50 border border-rose-500/30">
+            Political Economy / IPE / IR <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-rose-500/20 text-rose-200 font-mono">10</span>
+          </button>
+          <button type="button" data-track-tab="mandarin" class="track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-slate-900/70 text-amber-300 hover:bg-amber-950/50 border border-amber-500/30">
+            Mandarin B2&rarr;C1 <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-200 font-mono">10</span>
+          </button>
+          <button type="button" data-track-tab="japanese" class="track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-slate-900/70 text-indigo-300 hover:bg-indigo-950/50 border border-indigo-500/30">
+            Japanese C1 <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-indigo-500/20 text-indigo-200 font-mono">10</span>
+          </button>
+        </div>
+
+        <!-- Search & Status Filter -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1 xl:max-w-md">
+          <div class="relative flex-1">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input id="input-search" type="text" placeholder="Search 50 modules by topic, theorem, or concept..." class="w-full pl-9 pr-8 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+            <button id="btn-clear-search" type="button" title="Clear Search" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <select id="select-status-filter" aria-label="Filter by Status" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500 cursor-pointer">
+            <option value="all">All Statuses</option>
+            <option value="Not Started">Not Started</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Mastered">Mastered</option>
+            <option value="Review Needed">Review Needed</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Active Filter Summary & Quick Instructions -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-700/60 text-xs text-slate-400">
+        <div>
+          Showing <span id="showing-count" class="font-semibold text-slate-200">50</span> of 50 curriculum modules
+        </div>
+        <div class="flex items-center gap-1.5 text-[11px] text-slate-400">
+          <svg class="w-3.5 h-3.5 text-cyan-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Start with <strong class="text-cyan-300">Calculus Foundations (calc-01&rarr;10)</strong> to build mathematical fluency before or alongside <strong class="text-emerald-300">Econometrics</strong> &amp; <strong class="text-rose-300">Political Economy</strong>.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modules Grid -->
+    <section aria-label="Curriculum Modules">
+      <div id="modules-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <!-- Populated dynamically by JavaScript -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="hidden bg-slate-800/60 border border-slate-700/70 rounded-xl p-12 text-center max-w-lg mx-auto my-8">
+        <div class="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center mx-auto mb-3 text-slate-400">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <h2 class="text-base font-semibold text-white">No matching modules found</h2>
+        <p class="text-xs text-slate-400 mt-1">Try clearing your search filter or switching to "All Tracks" to see all 50 curriculum modules.</p>
+        <button id="btn-reset-filters" type="button" class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors cursor-pointer">
+          Reset All Filters
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Interactive Prompt Generator Modal -->
+  <div id="prompt-modal" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-6 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
+      <!-- Modal Header -->
+      <div id="modal-header-bar" class="px-5 py-4 bg-slate-900/90 border-b border-slate-700 flex items-start justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="modal-track-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide"></span>
+            <span id="modal-module-group" class="text-xs text-slate-400 font-medium"></span>
+            <span id="modal-id-badge" class="text-[11px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700"></span>
+          </div>
+          <h2 id="modal-title" class="text-base sm:text-lg font-bold text-white leading-snug"></h2>
+        </div>
+        <button id="btn-close-modal" type="button" aria-label="Close modal" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 transition-colors cursor-pointer shrink-0">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 overflow-y-auto space-y-5 flex-1">
+        <!-- Metadata & Diagnostic Summary -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-900/70 p-3.5 rounded-xl border border-slate-700/80 text-xs">
+          <div>
+            <span class="text-slate-400 block text-[11px]">Allocated Session Time</span>
+            <span id="modal-time" class="font-semibold text-slate-100 mt-0.5 inline-block"></span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[11px]">Target Register / Level</span>
+            <span id="modal-level" class="font-semibold text-slate-100 mt-0.5 inline-block"></span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[11px]">Current Module Status</span>
+            <select id="modal-status-select" aria-label="Module Status" class="mt-1 bg-slate-800 border border-slate-600 text-slate-100 text-xs rounded px-2 py-1 focus:outline-none focus:border-emerald-500 cursor-pointer w-full">
+              <option value="Not Started">Not Started</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Mastered">Mastered</option>
+              <option value="Review Needed">Review Needed</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Pedagogical Objective & Diagnostic Triangulation Preview -->
+        <div class="space-y-3 text-xs bg-slate-900/40 p-4 rounded-xl border border-slate-700/60">
+          <div>
+            <h3 class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Pedagogical Objective</h3>
+            <p id="modal-objective" class="text-slate-200 mt-1 leading-relaxed"></p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-700/50">
+            <div>
+              <h4 class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Phase 1 Baseline Diagnostic Focus</h4>
+              <ul id="modal-diagnostic-list" class="mt-1 space-y-1 text-slate-300 list-disc list-inside"></ul>
+            </div>
+            <div>
+              <h4 class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Substantive Domain Context</h4>
+              <p id="modal-context" class="mt-1 text-slate-300 leading-relaxed"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generated Standardized Prompt -->
+        <div class="space-y-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <label for="modal-prompt-textarea" class="text-xs font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Auto-Assembled Gemini Interactive Learning Prompt
+            </label>
+            <span class="text-[11px] text-slate-400">Editable before copying if you want custom constraints</span>
+          </div>
+          <textarea id="modal-prompt-textarea" rows="14" class="w-full font-mono text-xs bg-slate-950 text-slate-100 border border-slate-700 rounded-xl p-4 focus:outline-none focus:border-emerald-500 leading-relaxed"></textarea>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 py-3.5 bg-slate-900/95 border-t border-slate-700 flex flex-wrap items-center justify-between gap-3">
+        <div class="text-xs text-slate-400">
+          Copy and paste directly into Gemini with Interactive Learning enabled.
+        </div>
+        <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+          <button id="btn-close-modal-footer" type="button" class="px-4 py-2 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors cursor-pointer">
+            Close
+          </button>
+          <button id="btn-copy-prompt" type="button" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-950/50 transition-all cursor-pointer">
+            <svg id="icon-copy" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+            </svg>
+            <span id="copy-btn-text">Copy Prompt to Clipboard</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Confirmation Modal (No native confirm()) -->
+  <div id="reset-modal" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center gap-3 text-rose-400">
+        <div class="w-10 h-10 rounded-full bg-rose-950/80 border border-rose-800 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <div>
+          <h3 id="reset-modal-title" class="text-base font-bold text-white">Reset All Study Progress?</h3>
+          <p class="text-xs text-slate-400">This will clear all statuses, mastery ratings, and session notes across all 50 modules.</p>
+        </div>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Consider clicking <strong>Export JSON</strong> first if you want to keep a backup of your current study ledger.
+      </p>
+      <div class="flex items-center justify-end gap-2.5 pt-2">
+        <button id="btn-cancel-reset" type="button" class="px-4 py-2 rounded-lg text-xs font-medium bg-slate-700 hover:bg-slate-600 text-slate-200 transition-colors cursor-pointer">
+          Cancel
+        </button>
+        <button id="btn-confirm-reset" type="button" class="px-4 py-2 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white transition-colors cursor-pointer">
+          Reset Everything
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 pointer-events-none flex flex-col gap-2"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const STORAGE_KEY = 'scholar_os_study_portal_v1';
+
+      const TRACK_META = {
+        calculus: {
+          name: 'Track A: Calculus Foundations for Econometrics & Formal Modeling (Univariate to Matrix Calculus)',
+          shortName: 'Calculus Foundations',
+          accent: 'cyan',
+          badgeClass: 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30',
+          borderClass: 'border-cyan-500/30 hover:border-cyan-400/60',
+          topBarClass: 'bg-cyan-500',
+          btnClass: 'bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-semibold',
+          ratingActiveClass: 'bg-cyan-500 text-slate-950 font-bold border-cyan-400'
+        },
+        econometrics: {
+          name: 'Track B: Applied Econometrics & Causal Inference (PhD Prep)',
+          shortName: 'Econometrics',
+          accent: 'emerald',
+          badgeClass: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
+          borderClass: 'border-emerald-500/30 hover:border-emerald-400/60',
+          topBarClass: 'bg-emerald-500',
+          btnClass: 'bg-emerald-600 hover:bg-emerald-500 text-white',
+          ratingActiveClass: 'bg-emerald-500 text-slate-950 font-bold border-emerald-400'
+        },
+        polecon: {
+          name: 'Track C: Political Economy, IPE & International Relations Theory (PhD Core)',
+          shortName: 'PolEcon / IPE / IR',
+          accent: 'rose',
+          badgeClass: 'bg-rose-500/15 text-rose-300 border border-rose-500/30',
+          borderClass: 'border-rose-500/30 hover:border-rose-400/60',
+          topBarClass: 'bg-rose-500',
+          btnClass: 'bg-rose-600 hover:bg-rose-500 text-white',
+          ratingActiveClass: 'bg-rose-500 text-white font-bold border-rose-400'
+        },
+        mandarin: {
+          name: 'Track D: Professional & Academic Taiwanese Mandarin (B2 to C1)',
+          shortName: 'Mandarin B2->C1',
+          accent: 'amber',
+          badgeClass: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
+          borderClass: 'border-amber-500/30 hover:border-amber-400/60',
+          topBarClass: 'bg-amber-500',
+          btnClass: 'bg-amber-600 hover:bg-amber-500 text-slate-950 font-semibold',
+          ratingActiveClass: 'bg-amber-500 text-slate-950 font-bold border-amber-400'
+        },
+        japanese: {
+          name: 'Track E: Advanced Workplace & Academic Japanese (Low C1 to High C1)',
+          shortName: 'Japanese C1',
+          accent: 'indigo',
+          badgeClass: 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30',
+          borderClass: 'border-indigo-500/30 hover:border-indigo-400/60',
+          topBarClass: 'bg-indigo-500',
+          btnClass: 'bg-indigo-600 hover:bg-indigo-500 text-white',
+          ratingActiveClass: 'bg-indigo-500 text-white font-bold border-indigo-400'
+        }
+      };
+
+      // Embedded Curriculum Database (50 Concrete Modules: 10 per Track)
+      const CURRICULUM_MODULES = [
+        // ================= TRACK 1: CALCULUS FOUNDATIONS FOR ECONOMETRICS (calc-01 to calc-10) =================
+        {
+          id: 'calc-01',
+          track: 'calculus',
+          module: 'Univariate Differentiation Foundations',
+          title: 'Limits, Continuity & Basic Rules of Differentiation: Power, Product, Quotient, and Chain Rules',
+          targetTime: '25-30 min',
+          level: 'Foundational Review -> PhD Bridge',
+          pedagogicalObjective: 'Rebuild rock-solid fluency in limits, instantaneous rates of change, and the core differentiation rules (power, product, quotient, and composite chain rule) as the foundation for marginal analysis and least-squares minimization.',
+          diagnosticFocus: [
+            'Differentiating composite polynomial and rational functions using the Product, Quotient, and Chain Rules without algebraic slips.',
+            'Interpreting derivatives as marginal effects (e.g., marginal cost, marginal propensity, and the slope of a squared-loss function (y - bx)^2 with respect to b).'
+          ],
+          substantiveContext: 'Marginal tax rates, tariff revenue curves, and minimizing simple univariate sum-of-squared errors.'
+        },
+        {
+          id: 'calc-02',
+          track: 'calculus',
+          module: 'Univariate Differentiation Foundations',
+          title: 'Exponential & Logarithmic Calculus: Log-Linearization, Elasticities, and Growth Rates',
+          targetTime: '25-30 min',
+          level: 'Foundational Review -> PhD Bridge',
+          pedagogicalObjective: 'Master derivatives of natural logarithms (ln x) and exponentials (e^x), logarithmic differentiation, and the mathematical mechanics of log-log and semi-log elasticity specifications in empirical regressions.',
+          diagnosticFocus: [
+            'Differentiating functions of the form y = A x_1^a x_2^b e^{cx} directly and after taking natural logs (ln y).',
+            'Proving why d(ln y)/d(ln x) = (dy/dx)(x/y) represents point elasticity and why small changes in ln(y_t) approximate percentage growth rates.'
+          ],
+          substantiveContext: 'Gravity models of bilateral trade, GDP compounding growth rates, and semi-elasticities in wage or sanction regressions.'
+        },
+        {
+          id: 'calc-03',
+          track: 'calculus',
+          module: 'Univariate Optimization & Approximation',
+          title: 'Univariate Optimization, Concavity/Convexity & Second-Derivative Tests',
+          targetTime: '25-30 min',
+          level: 'Foundational Review -> PhD Bridge',
+          pedagogicalObjective: 'Locate stationary points (f\'(x) = 0), distinguish local versus global maxima and minima using second derivatives (f\'\'(x)), and verify strict concavity or convexity for utility, risk, and loss functions.',
+          diagnosticFocus: [
+            'Finding critical points and inflection points of a cubic or log-utility function and verifying global concavity via f\'\'(x) < 0.',
+            'Connecting strict convexity of an objective function to the uniqueness of the Ordinary Least Squares or Maximum Likelihood estimator.'
+          ],
+          substantiveContext: 'Arrow-Pratt risk aversion in political actors, Laffer-style tariff revenue maximization, and convex statistical loss functions.'
+        },
+        {
+          id: 'calc-04',
+          track: 'calculus',
+          module: 'Univariate Optimization & Approximation',
+          title: 'Taylor Series Expansions & Linear Approximations: The Mathematical Engine of the Delta Method',
+          targetTime: '30 min',
+          level: 'PhD Bridge',
+          pedagogicalObjective: 'Construct first- and second-order Taylor polynomial approximations around a point (x_0 or population mean \\mu), and understand how first-order Taylor expansion powers the Delta Method for asymptotic standard errors.',
+          diagnosticFocus: [
+            'Writing out the second-order Taylor expansion f(x) \\approx f(a) + f\'(a)(x - a) + \\frac{1}{2}f\'\'(a)(x - a)^2 for ln(1 + x) and e^x.',
+            'Using a first-order Taylor expansion g(\\hat{\\theta}) \\approx g(\\theta) + g\'(\\theta)(\\hat{\\theta} - \\theta) to approximate Var(g(\\hat{\\theta})) \\approx [g\'(\\theta)]^2 Var(\\hat{\\theta}).'
+          ],
+          substantiveContext: 'Computing standard errors for nonlinear ratios of regression coefficients (e.g., long-run multiplier in an ARDL political-economy model).'
+        },
+        {
+          id: 'calc-05',
+          track: 'calculus',
+          module: 'Integration & Continuous Probability',
+          title: 'Indefinite & Definite Integrals: The Fundamental Theorem of Calculus, Substitution, and Integration by Parts',
+          targetTime: '30 min',
+          level: 'Foundational Review -> PhD Bridge',
+          pedagogicalObjective: 'Rebuild core integration skills—antiderivatives, definite integrals as areas under curves, u-substitution, and integration by parts (\\int u dv = uv - \\int v du)—essential for continuous distributions and welfare surplus.',
+          diagnosticFocus: [
+            'Evaluating definite integrals using u-substitution and applying integration by parts to compute \\int x e^{-\\lambda x} dx.',
+            'Calculating consumer/producer surplus areas and discounting continuous future payoff streams \\int_0^\\infty u(c_t) e^{-rt} dt.'
+          ],
+          substantiveContext: 'Deadweight loss from import quotas, continuous-time discounting of treaty compliance payoffs, and expected survival duration.'
+        },
+        {
+          id: 'calc-06',
+          track: 'calculus',
+          module: 'Integration & Continuous Probability',
+          title: 'Improper Integrals, Leibniz’s Rule & Continuous Probability (PDFs, CDFs, Expectations & Moments)',
+          targetTime: '30 min',
+          level: 'PhD Bridge',
+          pedagogicalObjective: 'Evaluate improper integrals over infinite domains (-\\infty to \\infty), differentiate under the integral sign using Leibniz’s Rule, and connect integration directly to PDFs, CDFs, expected values E[X], and variance.',
+          diagnosticFocus: [
+            'Verifying that a probability density function integrates to 1 over [0, \\infty) and computing E[X] = \\int x f(x) dx and Var(X) = E[X^2] - (E[X])^2.',
+            'Applying Leibniz’s Integral Rule to differentiate an expected value or likelihood integral with respect to a parameter \\theta.'
+          ],
+          substantiveContext: 'Continuous war-duration hazard models, income inequality distributions (Pareto/log-normal), and score functions in Maximum Likelihood.'
+        },
+        {
+          id: 'calc-07',
+          track: 'calculus',
+          module: 'Multivariate Calculus & Gradients',
+          title: 'Multivariate Functions, Partial Derivatives, Gradients & The Total Differential',
+          targetTime: '30 min',
+          level: 'PhD Bridge',
+          pedagogicalObjective: 'Compute first- and higher-order partial derivatives, assemble the gradient vector \\nabla f, apply the multivariate chain rule, and use total differentials (df) to hold utility or output constant along isoquants.',
+          diagnosticFocus: [
+            'Computing \\partial f/\\partial x, \\partial f/\\partial y, and cross-partials \\partial^2 f/\\partial x \\partial y (verifying Young’s Theorem on symmetry of cross-partials).',
+            'Taking the total differential dz = f_x dx + f_y dy = 0 to derive the Marginal Rate of Substitution (MRS) and verify Euler’s Theorem for homogeneous functions.'
+          ],
+          substantiveContext: 'Cobb-Douglas and CES production functions, trade indifference curves, and ceteris paribus partial effects in multivariate models.'
+        },
+        {
+          id: 'calc-08',
+          track: 'calculus',
+          module: 'Multivariate Optimization & Comparative Statics',
+          title: 'Unconstrained Multivariate Optimization: Hessian Matrices, Leading Principal Minors & Concavity',
+          targetTime: '30 min',
+          level: 'PhD Preparatory',
+          pedagogicalObjective: 'Master unconstrained multivariate optimization by solving simultaneous first-order gradient conditions (\\nabla f = 0) and evaluating leading principal minors of the Hessian matrix H to classify maxima, minima, and saddle points.',
+          diagnosticFocus: [
+            'Constructing the 2x2 Hessian matrix of second-order partials and checking positive/negative definiteness via |H_1| and |H_2|.',
+            'Finding the global maximum of a bivariate log-likelihood or multi-input profit function and confirming strict concavity.'
+          ],
+          substantiveContext: 'Multi-market firm pricing, coalition resource allocation, and log-likelihood surface curvature.'
+        },
+        {
+          id: 'calc-09',
+          track: 'calculus',
+          module: 'Multivariate Optimization & Comparative Statics',
+          title: 'Constrained Optimization, Lagrangians, Kuhn-Tucker Conditions, Implicit Function & Envelope Theorems',
+          targetTime: '30 min',
+          level: 'PhD Preparatory',
+          pedagogicalObjective: 'Solve equality and inequality constrained optimization problems via Lagrangians and Kuhn-Tucker conditions, and apply the Implicit Function Theorem and Envelope Theorem to derive comparative statics without re-solving from scratch.',
+          diagnosticFocus: [
+            'Setting up the Lagrangian L(x, y, \\lambda), interpreting the shadow price \\lambda, and checking the Bordered Hessian determinant.',
+            'Applying the Envelope Theorem (dV(\\theta)/d\\theta = \\partial L/\\partial \\theta) and Implicit Function Theorem (dy/d\\theta = -F_\\theta / F_y) to sign how exogenous shocks shift optimal choices.'
+          ],
+          substantiveContext: 'Executive budget allocation under legislative constraints, corner solutions in defense spending, and comparative statics of tariff wars.'
+        },
+        {
+          id: 'calc-10',
+          track: 'calculus',
+          module: 'Matrix Calculus for Econometrics',
+          title: 'Matrix Calculus & Quadratic Forms: Differentiating Vectors and Matrices for OLS, GLS & GMM',
+          targetTime: '30 min',
+          level: 'PhD Preparatory',
+          pedagogicalObjective: 'Bridge multivariable calculus and matrix algebra by mastering vector derivatives of linear forms (a\'b) and quadratic forms (b\'Ab), trace tricks, and deriving matrix normal equations effortlessly.',
+          diagnosticFocus: [
+            'Proving and applying the two foundational matrix calculus identities: \\partial(a\'b)/\\partial b = a and \\partial(b\'Ab)/\\partial b = 2Ab (for symmetric A).',
+            'Expanding S(b) = (y - Xb)\'W(y - Xb) = y\'Wy - 2b\'X\'Wy + b\'X\'WXb and differentiating with respect to vector b to derive weighted/OLS estimators in 3 lines.'
+          ],
+          substantiveContext: 'Deriving OLS, Generalized Least Squares (GLS), Ridge regression penalties, and Generalized Method of Moments (GMM) first-order conditions.'
+        },
+
+        // ================= TRACK 2: APPLIED ECONOMETRICS & CAUSAL INFERENCE (econ-01 to econ-10) =================
+        {
+          id: 'econ-01',
+          track: 'econometrics',
+          module: 'Linear Models & Matrix Algebra',
+          title: "Matrix Algebra of OLS: Derivation of \\hat{\\beta} = (X'X)^{-1}X'Y, Projection Matrices (P & M), and Frisch-Waugh-Lovell",
+          targetTime: '30 min',
+          level: 'PhD Preparatory',
+          pedagogicalObjective: "Derive the Ordinary Least Squares estimator in matrix notation, prove idempotency and orthogonality of projection (P) and annihilator (M) matrices, and apply the Frisch-Waugh-Lovell (FWL) theorem to partialling-out covariates.",
+          diagnosticFocus: [
+            "Using matrix calculus on e'e = (Y - X\\beta)'(Y - X\\beta) to derive the normal equations X'X\\hat{\\beta} = X'Y and stating when X'X is invertible.",
+            "Proving M = I - X(X'X)^{-1}X' is symmetric and idempotent (M^2 = M, MX = 0) and showing via FWL that regressing Y on [X_1, X_2] yields the exact same \\hat{\\beta}_1 as regressing M_2 Y on M_2 X_1."
+          ],
+          substantiveContext: 'Partialling out country and year fixed effects in bilateral trade gravity equations and legislative voting models.'
+        },
+        {
+          id: 'econ-02',
+          track: 'econometrics',
+          module: 'Linear Models & Matrix Algebra',
+          title: 'The Gauss-Markov Theorem & Sandwich Estimators: Proving BLUE and Robust Inference (HC & Clustered SEs)',
+          targetTime: '30 min',
+          level: 'PhD Preparatory',
+          pedagogicalObjective: 'Execute the complete matrix proof that OLS is BLUE under homoskedastic spherical disturbances, and derive White heteroskedasticity-robust (HC) and Liang-Zeger cluster-robust sandwich variance estimators when E[uu\'|X] \\neq \\sigma^2 I.',
+          diagnosticFocus: [
+            "Writing any linear unbiased estimator as \\tilde{\\beta} = [(X'X)^{-1}X' + D]Y and proving Var(\\tilde{\\beta}|X) - Var(\\hat{\\beta}|X) = \\sigma^2 DD' is positive semi-definite.",
+            "Constructing the sandwich variance formula (X'X)^{-1}(X'\\Omega X)(X'X)^{-1} and explaining why clustering standard errors at the treatment-assignment level (e.g., state or country) is mandatory."
+          ],
+          substantiveContext: 'Cross-national macroeconomic panels with country-level serial correlation and regional policy clustering.'
+        },
+        {
+          id: 'econ-03',
+          track: 'econometrics',
+          module: 'Asymptotic Theory & Inference',
+          title: 'Asymptotic Properties: Consistency, Law of Large Numbers, Central Limit Theorem & The Delta Method',
+          targetTime: '30 min',
+          level: 'PhD Preparatory',
+          pedagogicalObjective: 'Distinguish finite-sample unbiasedness from large-sample consistency using probability limits (plim), Slutsky’s Theorem, the Lindeberg-Lévy CLT, and the Continuous Mapping Theorem in large-N datasets.',
+          diagnosticFocus: [
+            "Deriving plim(\\hat{\\beta}) = \\beta + [plim(N^{-1}X'X)]^{-1} plim(N^{-1}X'u) via the Weak Law of Large Numbers and contrasting E[u|X] = 0 vs. Cov(X, u) = 0.",
+            "Scaling by \\sqrt{N} to derive \\sqrt{N}(\\hat{\\beta} - \\beta) \\xrightarrow{d} N(0, Q^{-1}\\Omega Q^{-1}) and applying the Delta Method to nonlinear functions of parameters."
+          ],
+          substantiveContext: 'Large-N dyadic conflict and trade datasets where finite-sample normality fails or lagged dependent variables are present.'
+        },
+        {
+          id: 'econ-04',
+          track: 'econometrics',
+          module: 'Causal Identification & Endogeneity',
+          title: 'Endogeneity, Omitted Variable Bias & Measurement Error: Signing Bias & Classical Attenuation',
+          targetTime: '30 min',
+          level: 'PhD Preparatory',
+          pedagogicalObjective: 'Derive the exact omitted variable bias (OVB) formula, sign the direction of bias in substantive critiques, and prove why classical measurement error in X attenuates OLS toward zero while error in Y inflates standard errors.',
+          diagnosticFocus: [
+            'Deriving E[\\tilde{\\beta}_1] = \\beta_1 + \\beta_2 \\frac{Cov(X_1, X_2)}{Var(X_1)} and signing the bias in a 2x2 table of Cov(X_1, X_2) and \\beta_2.',
+            'Deriving the signal-to-total-variance attenuation factor \\lambda = \\frac{\\sigma^2_{x*}}{\\sigma^2_{x*} + \\sigma^2_v} under classical errors-in-variables.'
+          ],
+          substantiveContext: 'Noisy cross-national governance indices (Polity/V-Dem), unobserved historical state capacity, and simultaneous causality in military spending.'
+        },
+        {
+          id: 'econ-05',
+          track: 'econometrics',
+          module: 'Causal Identification & Endogeneity',
+          title: 'Potential Outcomes (Neyman-Rubin), DAGs, Colliders & Selection on Observables (Matching & IPW)',
+          targetTime: '30 min',
+          level: 'PhD Preparatory',
+          pedagogicalObjective: 'Decompose naive difference-in-means into Average Treatment Effect on the Treated (ATT) plus Selection Bias, distinguish confounders from colliders (bad controls) in DAGs, and apply propensity-score inverse probability weighting (IPW).',
+          diagnosticFocus: [
+            'Proving E[Y_i|D_i=1] - E[Y_i|D_i=0] = ATT + (E[Y_{0i}|D_i=1] - E[Y_{0i}|D_i=0]) and explaining conditional independence (CIA) and common support.',
+            'Identifying why conditioning on a post-treatment variable or collider opens a back-door path and induces endogenous selection bias.'
+          ],
+          substantiveContext: 'Evaluating IMF structural adjustment programs, GATT/WTO membership effects, and post-treatment mediator pitfalls.'
+        },
+        {
+          id: 'econ-06',
+          track: 'econometrics',
+          module: 'Causal Identification & Endogeneity',
+          title: 'Instrumental Variables & 2SLS: Identification, Weak Instruments, LATE & Shift-Share (Bartik) Designs',
+          targetTime: '30 min',
+          level: 'PhD Preparatory',
+          pedagogicalObjective: 'Derive the Wald and Two-Stage Least Squares (2SLS) estimators, interpret IV under heterogeneous treatment effects as Local Average Treatment Effects (LATE) for compliers, and diagnose weak-instrument bias.',
+          diagnosticFocus: [
+            'Deriving \\hat{\\beta}_{2SLS} = (X\'P_Z X)^{-1}X\'P_Z Y and showing why a weak first stage (F < 10 / Olea-Pflueger effective F) biases 2SLS toward endogenous OLS.',
+            'Defining Angrist-Imbens-Rubin monotonicity (no defiers), compliers vs. always/never-takers, and evaluating shift-share (Bartik) exogenous shares vs. shocks.'
+          ],
+          substantiveContext: 'Import competition shocks ("China Shock") on domestic elections, colonial settler mortality instruments, and foreign aid effectiveness.'
+        },
+        {
+          id: 'econ-07',
+          track: 'econometrics',
+          module: 'Panel &Quasi-Experimental Designs',
+          title: 'Panel Data Mechanics: Fixed Effects (Within), Random Effects, Hausman Test, Mundlak & Nickell Bias',
+          targetTime: '30 min',
+          level: 'PhD Preparatory',
+          pedagogicalObjective: 'Derive the within-unit demeaning transformation, contrast Fixed Effects against GLS Random Effects via the Hausman and Mundlak specifications, and explain Nickell (1981) bias in dynamic panels with lagged dependent variables.',
+          diagnosticFocus: [
+            'Showing how demeaning y_{it} - \\bar{y}_i eliminates \\alpha_i, why time-invariant regressors drop out, and how Mundlak’s correlated random effects restores them.',
+            'Proving why including y_{i,t-1} alongside unit fixed effects creates O(1/T) correlation between demeaned lag (y_{i,t-1} - \\bar{y}_i) and demeaned error (\\varepsilon_{it} - \\bar{\\varepsilon}_i).'
+          ],
+          substantiveContext: 'Country-year TSCS panels of industrial subsidies, democratization waves, and fiscal redistribution.'
+        },
+        {
+          id: 'econ-08',
+          track: 'econometrics',
+          module: 'Panel & Quasi-Experimental Designs',
+          title: 'Modern Difference-in-Differences & Event Studies: Parallel Trends, Goodman-Bacon & Staggered Adoption',
+          targetTime: '30 min',
+          level: 'PhD Preparatory',
+          pedagogicalObjective: 'Formulate canonical 2x2 DiD and dynamic event-study regressions, apply the Goodman-Bacon (2021) theorem to diagnose negative weights in staggered Two-Way Fixed Effects (TWFE), and implement Callaway & Sant’Anna or Sun & Abraham estimators.',
+          diagnosticFocus: [
+            'Explaining how staggered TWFE uses already-treated units as "forbidden controls" when treatment effects evolve dynamically over time.',
+            'Interpreting event-study lead coefficients (pre-trend falsification tests) and lag coefficients (dynamic treatment trajectories) while avoiding multicollinearity traps.'
+          ],
+          substantiveContext: 'Staggered rollouts of bilateral semiconductor export controls, carbon border taxes, and regional trade agreements.'
+        },
+        {
+          id: 'econ-09',
+          track: 'econometrics',
+          module: 'Panel & Quasi-Experimental Designs',
+          title: 'Regression Discontinuity (Sharp & Fuzzy RDD) & Synthetic Control Methods for Comparative Case Studies',
+          targetTime: '30 min',
+          level: 'PhD Preparatory',
+          pedagogicalObjective: 'Identify local treatment effects at deterministic and probabilistic cutoffs using local linear regressions and McCrary density tests, and construct Abadie-type Synthetic Control donor weights for N=1 macro interventions.',
+          diagnosticFocus: [
+            'Distinguishing Sharp RDD (continuity of E[Y(0)|X=c] at cutoff c) from Fuzzy RDD (where the cutoff jump is an IV for treatment take-up) and choosing MSE-optimal bandwidths.',
+            'Formulating the Synthetic Control simplex optimization (w_j \\ge 0, \\sum w_j = 1) to match pre-intervention trajectories and conducting permutation placebo inference.'
+          ],
+          substantiveContext: 'Close electoral margin RDDs, tariff threshold rules, and Synthetic Control evaluations of economic sanctions or Brexit/trade shocks.'
+        },
+        {
+          id: 'econ-10',
+          track: 'econometrics',
+          module: 'Nonlinear MLE & Spatial Models',
+          title: 'Maximum Likelihood Estimation (Logit, Probit, Count) & Spatial Econometrics (SAR, SEM & Spillovers)',
+          targetTime: '30 min',
+          level: 'PhD Preparatory',
+          pedagogicalObjective: 'Derive log-likelihood functions, score vectors, and Fisher Information matrices for binary/count outcomes, and model network interdependence using spatial weight matrices (W) in Spatial Lag (SAR) and Spatial Error (SEM) models.',
+          diagnosticFocus: [
+            'Deriving the binary Logit/Probit log-likelihood \\ell(\\beta), explaining why marginal effects depend on covariate values (AME vs. MEM), and contrasting LR, Wald, and Score tests.',
+            'Explaining why OLS on y = \\rho Wy + X\\beta + \\varepsilon suffers from simultaneity bias and using the spatial multiplier (I - \\rho W)^{-1} to separate direct vs. indirect spillover effects.'
+          ],
+          substantiveContext: 'Binary conflict onset or treaty ratification models, and spatial policy diffusion or supply-chain contagion across trading networks.'
+        },
+
+        // ================= TRACK 3: POLITICAL ECONOMY, IPE & IR THEORY (pe-01 to pe-10) =================
+        {
+          id: 'pe-01',
+          track: 'polecon',
+          module: 'Foundations of Political Economy & Collective Action',
+          title: 'Collective Action, Public Goods & Institutional Design: Olson, Ostrom, and Coasean Bargaining',
+          targetTime: '25-30 min',
+          level: 'PhD Core Seminar',
+          pedagogicalObjective: 'Analyze why rational individuals fail to provide public goods (free-riding and Prisoner’s Dilemma), how Mancur Olson’s group size and selective incentives operate, and how Coasean property rights and Ostrom’s polycentric governance resolve commons dilemmas.',
+          diagnosticFocus: [
+            'Comparing concentrated vs. diffuse interests in Olson’s Logic of Collective Action (e.g., why small protectionist lobbies defeat diffuse consumers).',
+            'Stating the Political Coase Theorem (and why commitment problems and transaction costs prevent efficient political bargains).'
+          ],
+          substantiveContext: 'Trade protectionist lobbying, international climate mitigation free-riding, and global financial standard-setting.'
+        },
+        {
+          id: 'pe-02',
+          track: 'polecon',
+          module: 'Foundations of Political Economy & Collective Action',
+          title: 'Social Choice, Spatial Voting Models & Agenda Power: Arrow, Median Voter, Vetoes & Selectorate Theory',
+          targetTime: '25-30 min',
+          level: 'PhD Core Seminar',
+          pedagogicalObjective: 'Master the microfoundations of collective decision-making: Condorcet cycles, Arrow’s Impossibility Theorem, the Downsian Median Voter Theorem, Romer-Rosenthal agenda-setter models, Tsebelis’s Veto Players, and Bueno de Mesquita’s Selectorate Theory (W/S).',
+          diagnosticFocus: [
+            'Explaining why multidimensional policy spaces break the Median Voter Theorem (McKelvey’s Chaos Theorem) and how institutional structure induces structure-induced equilibrium (Shepsle).',
+            'Contrasting public-goods provision vs. private patronage rents as a function of winning coalition size (W) and selectorate size (S).'
+          ],
+          substantiveContext: 'Legislative trade authority delegation, central bank independence, and autocratic vs. democratic crisis responsiveness.'
+        },
+        {
+          id: 'pe-03',
+          track: 'polecon',
+          module: 'Comparative Political Economy & Institutions',
+          title: 'Credible Commitment, Property Rights & Historical Institutionalism: North, Acemoglu-Robinson & State Capacity',
+          targetTime: '25-30 min',
+          level: 'PhD Core Seminar',
+          pedagogicalObjective: 'Evaluate how political institutions solve time-inconsistent sovereign predation (North & Weingast), contrast inclusive vs. extractive institutions (Acemoglu, Johnson & Robinson), and trace endogenous fiscal and coercive state capacity formation (Tilly, Besley & Persson).',
+          diagnosticFocus: [
+            'Explaining the time-inconsistency / hold-up problem faced by an unconstrained sovereign borrower or expropriator, and how constitutional checks create credible commitment.',
+            'Critiquing historical persistence arguments, critical junctures, and the identification debates surrounding colonial origins of comparative development.'
+          ],
+          substantiveContext: 'Sovereign debt credibility, foreign direct investment expropriation risk, and East Asian developmental state capacity.'
+        },
+        {
+          id: 'polecon-04',
+          track: 'polecon',
+          module: 'Comparative Political Economy & Institutions',
+          title: 'Redistribution, Regime Transitions & Varieties of Capitalism: Meltzer-Richard, Boix, and Hall & Soskice',
+          targetTime: '25-30 min',
+          level: 'PhD Core Seminar',
+          pedagogicalObjective: 'Synthesize workhorse models of fiscal redistribution (Meltzer-Richard), inequality and democratization (Boix vs. Acemoglu & Robinson; Ansell & Samuels), and institutional complementarities in Liberal vs. Coordinated Market Economies (VoC).',
+          diagnosticFocus: [
+            'Deriving why a wider gap between mean and median income increases demand for taxation in Meltzer-Richard, and why asset mobility (Boix) alters elite resistance to democracy.',
+            'Comparing skill formation, corporate governance, and industrial relations across Liberal Market Economies (LMEs), Coordinated Market Economies (CMEs), and state-led models.'
+          ],
+          substantiveContext: 'Welfare state retrenchment, technological automation shocks, and comparative industrial policy in the US, Europe, Japan, and Taiwan.'
+        },
+        {
+          id: 'pe-05',
+          track: 'polecon',
+          module: 'International Political Economy (Trade & Finance)',
+          title: 'Trade Politics & Distributional Cleavages: Stolper-Samuelson, Ricardo-Viner, and "New New" Firm-Level Trade (Melitz)',
+          targetTime: '25-30 min',
+          level: 'PhD Core Seminar',
+          pedagogicalObjective: 'Trace how international trade generates domestic political cleavages across class/factor lines (Heckscher-Ohlin / Stolper-Samuelson; Rogowski), industry/sector lines (Ricardo-Viner / Hiscox), and intra-industry firm heterogeneity (Melitz / Helpman).',
+          diagnosticFocus: [
+            'Predicting when trade politics aligns along factor-class cleavages (labor vs. capital) versus sector-specific cleavages based on inter-industry factor mobility.',
+            'Explaining why under Melitz firm heterogeneity, only the most productive firms export or engage in FDI, fracturing traditional industry-wide trade associations.'
+          ],
+          substantiveContext: 'Supply chain reshoring lobbies, agricultural vs. high-tech trade negotiations, and firm-level lobbying over tariff exemptions.'
+        },
+        {
+          id: 'pe-06',
+          track: 'polecon',
+          module: 'International Political Economy (Trade & Finance)',
+          title: 'Open Economy Macroeconomics & Monetary Politics: The Mundell-Fleming Trilemma, Frieden, and Financial Crises',
+          targetTime: '25-30 min',
+          level: 'PhD Core Seminar',
+          pedagogicalObjective: 'Apply the Mundell-Fleming Unholy Trinity (Monetary Trilemma) to analyze policy trade-offs between capital mobility, exchange rate stability, and monetary autonomy, alongside Jeffry Frieden’s distributional politics of exchange rate regimes.',
+          diagnosticFocus: [
+            'Tracing why a country with open capital markets cannot simultaneously maintain a fixed exchange rate and an independent monetary policy.',
+            'Mapping Frieden’s 2x2 matrix of domestic preferences over exchange rate level (depreciation vs. appreciation) and stability (fixed vs. floating) across tradable and non-tradable sectors.'
+          ],
+          substantiveContext: 'Central bank currency interventions, global dollar liquidity cycles (Rey’s Dilemma), and sovereign debt/balance-of-payments crises.'
+        },
+        {
+          id: 'pe-07',
+          track: 'polecon',
+          module: 'International Relations & Strategic Interaction',
+          title: 'IR Paradigms & Cooperation Under Anarchy: Structural Realism, Neoliberal Institutionalism & Constructivism',
+          targetTime: '25-30 min',
+          level: 'PhD Core Seminar',
+          pedagogicalObjective: 'Compare how Waltz/Mearsheimer (structural realism), Keohane/Axelrod (neoliberal institutionalism), and Wendt/Finnemore (constructivism) explain cooperation, relative vs. absolute gains, and institutional design under international anarchy.',
+          diagnosticFocus: [
+            'Contrasting how the "shadow of the future," issue linkage, monitoring, and reduced transaction costs sustain cooperation in Keohane’s After Hegemony against Grieco/Mearsheimer’s relative-gains critique.',
+            'Distinguishing rationalist logic of consequences from constructivist logic of appropriateness and norm life cycles.'
+          ],
+          substantiveContext: 'WTO dispute settlement paralysis, security alliances in the Indo-Pacific, and multilateral technology governance regimes.'
+        },
+        {
+          id: 'pe-08',
+          track: 'polecon',
+          module: 'International Relations & Strategic Interaction',
+          title: 'Rationalist Explanations for War & Crisis Bargaining: Fearon (1995), Audience Costs & Signaling Games',
+          targetTime: '25-30 min',
+          level: 'PhD Core Seminar',
+          pedagogicalObjective: 'Master James Fearon’s (1995) bargaining range framework—showing why costly conflict occurs despite a peaceful Pareto-efficient settlement range due to private information with incentives to misrepresent, commitment problems, and issue indivisibilities.',
+          diagnosticFocus: [
+            'Drawing the [0, 1] crisis bargaining interval (p - c_A to p + c_B) and explaining how preventive war arises from rapid power shifts (commitment problem) even under complete information.',
+            'Distinguishing costly signaling ("tying hands" via domestic audience costs vs. "sinking costs" via military mobilization) in separating vs. pooling equilibria.'
+          ],
+          substantiveContext: 'Cross-strait deterrence signaling, economic brinkmanship, and credibility of alliance security guarantees.'
+        },
+        {
+          id: 'pe-09',
+          track: 'polecon',
+          module: 'Geoeconomics & Domestic-International Linkages',
+          title: 'Two-Level Games & Open Economy Politics (OEP): Putnam, Milner, and Domestic Ratification Constraints',
+          targetTime: '25-30 min',
+          level: 'PhD Core Seminar',
+          pedagogicalObjective: 'Analyze how domestic institutions mediate international negotiations using Putnam’s Two-Level Games (win-sets and the Schelling conjecture) and Lake’s Open Economy Politics (OEP) analytical sequence (interests -> institutions -> international bargaining).',
+          diagnosticFocus: [
+            'Explaining the Schelling Conjecture: how a smaller domestic Level II win-set can strengthen a negotiator’s distributive bargaining leverage at Level I while raising the risk of involuntary defection.',
+            'Tracing the three steps of the OEP paradigm and evaluating critiques of OEP’s reductionist assumptions (Farrell & Newman; Oatley).'
+          ],
+          substantiveContext: 'Bilateral investment treaties, domestic legislative ratification of trade agreements, and regulatory harmonization.'
+        },
+        {
+          id: 'pe-10',
+          track: 'polecon',
+          module: 'Geoeconomics & Domestic-International Linkages',
+          title: 'Economic Statecraft, Asymmetric Interdependence & Weaponized Interdependence: Hirschman, Baldwin & Farrell-Newman',
+          targetTime: '25-30 min',
+          level: 'PhD Core Seminar',
+          pedagogicalObjective: 'Theorize modern geoeconomic competition through Albert Hirschman’s asymmetric trade vulnerability, David Baldwin’s economic statecraft, Drezner’s sanctions paradox, and Farrell & Newman’s Weaponized Interdependence (panopticon and chokepoint effects).',
+          diagnosticFocus: [
+            'Distinguishing Keohane & Nye’s "sensitivity interdependence" from "vulnerability interdependence" (cost of switching after ties are severed) and Hirschman’s influence effect.',
+            'Explaining how hub-and-spoke network topologies enable states with jurisdiction over central nodes to exercise "panopticon" surveillance and "chokepoint" coercion (Farrell & Newman 2019).'
+          ],
+          substantiveContext: 'Semiconductor lithography & EDA chokepoints, SWIFT financial messaging sanctions, critical mineral supply chains, and de-risking strategies.'
+        },
+
+        // ================= TRACK 4: PROFESSIONAL & ACADEMIC TAIWANESE MANDARIN (mandarin-01 to mandarin-10) =================
+        {
+          id: 'mandarin-01',
+          track: 'mandarin',
+          module: 'Written Register & Discourse',
+          title: 'Syntactic Shift: Converting Spoken Discourse (口語) to Formal Written Chinese (書面語) in Policy Briefs',
+          targetTime: '15-20 min',
+          level: 'B2->C1',
+          pedagogicalObjective: 'Systematically replace colloquial Taiwanese Mandarin particles, loose parataxis, and verbal padding with compact disyllabic verbs, classical function particles (之、其、亦、乃), and formal nominalizations.',
+          diagnosticFocus: [
+            'Transforming conversational clauses using 「因為…所以…」、「如果…的話」、and 「我覺得」 into high-register policy prose using 「鑑於」、「倘若」、and 「本研究主張」.',
+            'Tightening verbose verbal phrases into compact disyllabic 書面 structures (e.g., converting 「做一個深入的調查跟分析」 into 「進行深入剖析」 or 「詳加研析」).'
+          ],
+          substantiveContext: 'Executive policy briefs for Taiwan ministries, think tanks (e.g., CIER, TIER), and semiconductor industrial strategy memos.'
+        },
+        {
+          id: 'mandarin-02',
+          track: 'mandarin',
+          module: 'Written Register & Discourse',
+          title: 'Causality and Attributive Structures: Nuances between 「緣於」、「鑑於」、「從而」、and 「致使」 in Economic Analyses',
+          targetTime: '15-20 min',
+          level: 'B2->C1',
+          pedagogicalObjective: 'Master the syntactic placement, semantic prosody (positive, neutral, vs. adverse outcomes), and register constraints of formal causal connectives in analytical Taiwanese Mandarin.',
+          diagnosticFocus: [
+            'Distinguishing retrospective origin attribution (「緣於」) from deliberative premise framing (「有鑑於此 / 鑑於」).',
+            'Contrasting constructive or logical progression (「從而帶動…」) against undesirable or disruptive consequences (「致使供應鏈受阻」).'
+          ],
+          substantiveContext: 'Central Bank of the Republic of China (Taiwan) monetary policy analyses and macroeconomic quarterly outlooks.'
+        },
+        {
+          id: 'mandarin-03',
+          track: 'mandarin',
+          module: 'Written Register & Discourse',
+          title: 'Academic Argumentation: Structuring Rebuttals and Counter-Theses Using Formal Discourse Markers (四字成語與駢儷句式)',
+          targetTime: '15-20 min',
+          level: 'B2->C1',
+          pedagogicalObjective: 'Construct balanced concession-and-rebuttal paragraphs using formal concessive markers (「固然…惟…」、「誠然…然而…」) and four-character analytical idioms without sounding overly archaic.',
+          diagnosticFocus: [
+            'Deploying 「固然具有一定解釋力，惟其忽略…」 to acknowledge prior literature before introducing a methodological critique.',
+            'Integrating high-frequency academic idioms such as 「相輔相成」、「密不可分」、「見仁見智」、and 「舉足輕重」 with balanced parallel clause rhythm.'
+          ],
+          substantiveContext: 'Literature reviews and theoretical critiques in Taiwanese social science and political economy journals (e.g., 《問題與研究》、《台灣政治學刊》).'
+        },
+        {
+          id: 'mandarin-04',
+          track: 'mandarin',
+          module: 'Enterprise & Policy Lexicon',
+          title: 'Institutional & Enterprise Lexicon: Terminology for Capital Structures, Corporate Governance, and Regulatory Filings (繁體中文)',
+          targetTime: '15-20 min',
+          level: 'B2->C1',
+          pedagogicalObjective: 'Accurately deploy Taiwan-standard Traditional Chinese terminology for corporate governance, equity disclosures, and regulatory compliance, avoiding Mainland-specific lexical equivalents.',
+          diagnosticFocus: [
+            'Differentiating Taiwan regulatory and financial terms (e.g., 「股東常會」、「獨立董事」、「公開說明書」、「金管會」、「本益比」) from non-Taiwan variants.',
+            'Drafting formal sentences describing institutional shareholding shifts, board oversight, and capital expenditure (資本支出) allocations.'
+          ],
+          substantiveContext: 'Taiwan Stock Exchange (TWSE) corporate governance reports, MOPS (公開資訊觀測站) disclosures, and FSC regulatory filings.'
+        },
+        {
+          id: 'mandarin-05',
+          track: 'mandarin',
+          module: 'Enterprise & Policy Lexicon',
+          title: 'Policy Memorandum Phrasing: Drafting Executive Summaries with Administrative Tone and Diplomatic Hedging',
+          targetTime: '15-20 min',
+          level: 'B2->C1',
+          pedagogicalObjective: 'Draft concise policy recommendations that balance authoritative clarity with calibrated epistemic hedging (「似宜」、「尚待」、「允宜」、「審慎評估」) appropriate for Taiwanese civil and institutional memos.',
+          diagnosticFocus: [
+            'Using administrative advisory modals such as 「允宜建立跨部會協調機制」 and 「似可採行分階段推動策略」 to frame policy recommendations.',
+            'Structuring a three-part executive summary: background problem statement (背景說明), core bottlenecks (關鍵瓶頸), and actionable proposals (具體建議).'
+          ],
+          substantiveContext: 'National Development Council (國發會) and Ministry of Economic Affairs (經濟部) strategic white papers on energy transition and talent retention.'
+        },
+        {
+          id: 'mandarin-06',
+          track: 'mandarin',
+          module: 'Empirical & Quantitative Prose',
+          title: 'Empirical Research Methodology Phrasing: Describing Data Collection, Sample Selection, and Model Specifications',
+          targetTime: '15-20 min',
+          level: 'B2->C1',
+          pedagogicalObjective: 'Write precise methodological sections in Traditional Chinese covering panel data construction, variable operationalization, endogeneity controls, and robustness checks.',
+          diagnosticFocus: [
+            'Translating econometric concepts into standard Taiwanese academic Mandarin: 「追蹤資料 (panel data)」、「固定效果模型」、「工具變數法」、「內生性偏誤」、and 「穩健性檢定」.',
+            'Formulating clear prose explaining sample attrition, missing data treatment, and operational definitions (操作型定義).'
+          ],
+          substantiveContext: 'Empirical methodology sections for Academia Sinica (中央研究院) working papers and National Science and Technology Council (國科會) grant proposals.'
+        },
+        {
+          id: 'mandarin-07',
+          track: 'mandarin',
+          module: 'Empirical & Quantitative Prose',
+          title: 'Quantitative Data Narration: Articulating Trends, Plateaus, Inflections, and Statistical Significance in Formal Prose',
+          targetTime: '15-20 min',
+          level: 'B2->C1',
+          pedagogicalObjective: 'Narrate regression outputs and time-series trajectories using precise verb-complement structures, percentage-point distinctions, and formal statistical significance reporting.',
+          diagnosticFocus: [
+            'Distinguishing percentage change (「成長百分之五」) from percentage points (「上升 2.5 個百分點」) and narrating inflection points (「呈現先升後降之倒 U 型趨勢」).',
+            'Reporting regression coefficients formally: 「在 1% 之顯著水準下呈現顯著正相關，顯示…每增加一單位，將帶動…」.'
+          ],
+          substantiveContext: 'DGBAS (主計總處) trade statistics briefings, industrial output indices, and empirical results tables.'
+        },
+        {
+          id: 'mandarin-08',
+          track: 'mandarin',
+          module: 'Geoeconomics & Correspondence',
+          title: 'Cross-Strait & East Asian Geoeconomic Discourse: Analyzing Trade Dependency, Sanctions, and Supply Chain Terms',
+          targetTime: '15-20 min',
+          level: 'B2->C1',
+          pedagogicalObjective: 'Command high-precision Taiwanese analytical vocabulary for economic statecraft, supply chain decoupling/de-risking, export controls, and asymmetric interdependence.',
+          diagnosticFocus: [
+            'Deploying precise terminology such as 「去風險化 (de-risking)」、「出口管制」、「關鍵戰略物資」、「不對稱依賴」、and 「供應鏈韌性」.',
+            'Maintaining an objective, analytical academic register when evaluating geopolitical risk exposure and trade diversification policies.'
+          ],
+          substantiveContext: 'Indo-Pacific economic security dialogues, semiconductor supply chain resilience forums, and cross-strait trade structure analyses.'
+        },
+        {
+          id: 'mandarin-09',
+          track: 'mandarin',
+          module: 'Geoeconomics & Correspondence',
+          title: 'Formal Correspondence: High-Register Administrative Communication with Faculty, Institutes, and Corporate Entities',
+          targetTime: '15-20 min',
+          level: 'B2->C1',
+          pedagogicalObjective: 'Compose polished Taiwanese academic and institutional emails using appropriate salutations, epistolary transitions (「專此奉達」、「尚祈見諒」、「隨函檢附」), and respectful closing formulas.',
+          diagnosticFocus: [
+            'Selecting appropriate honorific openings and closings (e.g., 「○○教授道鑒 / 鈞鑒」、「敬請 查照」、「順頌 時祺 / 研安」) based on institutional hierarchy.',
+            'Framing polite requests for data access, symposium invitations, or schedule adjustments without sounding either overly stiff or overly casual.'
+          ],
+          substantiveContext: 'Outreach to Taiwanese university faculty, research fellows at Academia Sinica, and government ministry division directors.'
+        },
+        {
+          id: 'mandarin-10',
+          track: 'mandarin',
+          module: 'Geoeconomics & Correspondence',
+          title: 'Academic Oral Delivery: Transitioning Between Slides, Introducing Guest Speakers, and Moderating Q&A Sessions',
+          targetTime: '15-20 min',
+          level: 'B2->C1',
+          pedagogicalObjective: 'Deliver fluent, authoritative spoken formal Mandarin in academic conferences, including speaker introductions, signposting slide transitions, and diplomatically managing Q&A floor time.',
+          diagnosticFocus: [
+            'Using natural yet elevated oral signposts such as 「承接前一張投影片之實證結果，接下來我們進一步探討…」.',
+            'Moderating Q&A exchanges graciously: thanking the discussant (「非常感謝評論人精闢的指正」), synthesizing multi-part questions, and inviting final floor questions.'
+          ],
+          substantiveContext: 'Chairing a panel or presenting empirical findings at a bilingual international conference hosted in Taipei.'
+        },
+
+        // ================= TRACK 5: ADVANCED WORKPLACE & ACADEMIC JAPANESE (jpn-01 to jpn-10) =================
+        {
+          id: 'jpn-01',
+          track: 'japanese',
+          module: 'Honorifics & Institutional Communication',
+          title: 'Keigo Refinement: Advanced Kenjougo I vs. Kenjougo II (Teichougo) in Administrative Email Exchanges',
+          targetTime: '15-20 min',
+          level: 'High C1',
+          pedagogicalObjective: 'Eliminate double-keigo (二重敬語) and confusion between humble actions directed toward an out-group recipient (謙譲語I: 伺う・申し上げる) versus courteous stylistic markers (謙譲語II / 丁重語: 参る・申す・いたす).',
+          diagnosticFocus: [
+            'Diagnosing and correcting common errors such as mixing 謙譲語I and 尊敬語 (e.g., replacing 「ご拝見いたしました」 or 「おっしゃられました」 with 「拝見いたしました」 and 「おっしゃいました」).',
+            'Deploying 丁重語 (いたす・参る・存じる) accurately in external administrative notifications where the action does not directly impinge upon the addressee.'
+          ],
+          substantiveContext: 'External correspondence with Japanese university secretariats, ministry officials (METI/MOFA), and corporate research partners.'
+        },
+        {
+          id: 'jpn-02',
+          track: 'japanese',
+          module: 'Honorifics & Institutional Communication',
+          title: 'Academic Symposium Emceeing: Formal Stage Moderation, Introducing Keynote Scholars, and Floor Management',
+          targetTime: '15-20 min',
+          level: 'High C1',
+          pedagogicalObjective: 'Master the ritualized, high-register spoken Japanese required to open an academic symposium, introduce distinguished keynote speakers (略歴紹介), enforce timekeeping politely, and transition to Q&A.',
+          diagnosticFocus: [
+            'Delivering seamless stage openings and speaker introductions using formulas such as 「定刻となりましたので、ただいまより…を開催いたします」 and 「ご登壇いただきますのは…」.',
+            'Intervening tactfully when a speaker or questioner runs over time (「誠に恐れ入りますが、お時間の都合上…」) while preserving institutional decorum.'
+          ],
+          substantiveContext: 'Serving as MC (司会進行) or panel chair (座長) at a Japanese academic society conference (学会) or policy symposium in Tokyo.'
+        },
+        {
+          id: 'jpn-03',
+          track: 'japanese',
+          module: 'Academic Prose & Lexical Precision',
+          title: 'Research Paper Prose (論文調): Transitioning from Communicative Japanese to Strict Academic Register Using 「〜と考えられる」、「〜に起因する」',
+          targetTime: '15-20 min',
+          level: 'High C1',
+          pedagogicalObjective: 'Convert polite Desu/Masu prose into authoritative Da/De-aru academic writing (論文調) using objective evidentiary hedging (「〜と推察される」、「〜が示唆される」) and formal causal structures.',
+          diagnosticFocus: [
+            'Distinguishing subjective opinion from evidence-backed academic inference using 「〜と考えられる」、「〜と解される」、and 「〜に他ならない」.',
+            'Replacing conversational causal clauses (「〜だから」、「〜せいで」) with formal nominalized structures (「〜に起因する」、「〜に由来する」、「〜を背景として」).'
+          ],
+          substantiveContext: 'Peer-reviewed Japanese journal articles (査読付き論文) in international relations, applied economics, and public policy.'
+        },
+        {
+          id: 'jpn-04',
+          track: 'japanese',
+          module: 'Academic Prose & Lexical Precision',
+          title: 'Nuance Disambiguation in Kango (漢語): Differentiating Near-Synonyms in Policy (e.g., 促進 vs. 推進; 懸念 vs. 憂慮)',
+          targetTime: '15-20 min',
+          level: 'High C1',
+          pedagogicalObjective: 'Develop native-level collocational precision across high-frequency Sino-Japanese (漢語) near-synonyms in policy, legal, and economic writing.',
+          diagnosticFocus: [
+            'Differentiating agentive institutional drive (「政策を推進する」) from catalytic facilitation of an organic process (「投資を促進する」).',
+            'Contrasting epistemic risk anticipation (「悪影響が懸念される」) against deep normative grave concern (「事態を深く憂慮する」), as well as 「改定 vs. 改正」 and 「検討 vs. 検証」.'
+          ],
+          substantiveContext: 'Japanese Cabinet Office white papers (経済財政白書), diplomatic bluebooks, and institutional research reports.'
+        },
+        {
+          id: 'jpn-05',
+          track: 'japanese',
+          module: 'Workplace Negotiation & Disclosures',
+          title: 'Diplomatic & Institutional Refusals: Cushion Language (クッション言葉) for Boundary Setting with External Partners',
+          targetTime: '15-20 min',
+          level: 'High C1',
+          pedagogicalObjective: 'Decline requests, renegotiate timelines, or set institutional boundaries in Japanese without causing relational friction by combining cushion phrases, indirect negation (「〜かねる」), and alternative proposals.',
+          diagnosticFocus: [
+            'Using high-register refusal structures such as 「ご希望に添いかねます」、「いたしかねます」、and 「見送らせていただきます」 preceded by appropriate クッション言葉.',
+            'Structuring a three-step diplomatic boundary email: appreciative acknowledgment, indirect institutional constraint explanation, and constructive counter-proposal (代替案の提示).'
+          ],
+          substantiveContext: 'Declining unfeasible joint-research data requests, adjusting project deliverables, or declining speaking invitations with Japanese institutions.'
+        },
+        {
+          id: 'jpn-06',
+          track: 'japanese',
+          module: 'Workplace Negotiation & Disclosures',
+          title: 'Interpreting Enterprise & Market Disclosures: Parsing Japanese Earnings Releases, Regulatory Filings, and Corporate Governance Reports',
+          targetTime: '15-20 min',
+          level: 'High C1',
+          pedagogicalObjective: 'Read and synthesize Japanese statutory disclosures (有価証券報告書), earnings summaries (決算短信), and Corporate Governance Code compliance filings with speed and analytical accuracy.',
+          diagnosticFocus: [
+            'Parsing standard financial disclosure phrasing: 「増収増益」、「通期業績予想の上方修正」、「資本効率の向上」、and 「政策保有株式の縮減」.',
+            'Identifying how Japanese management attributes headwinds and tailwinds using formal accounting and governance terminology.'
+          ],
+          substantiveContext: 'Tokyo Stock Exchange Prime Market disclosures, EDINET filings, and corporate governance reform analyses.'
+        },
+        {
+          id: 'jpn-07',
+          track: 'japanese',
+          module: 'Workplace Negotiation & Disclosures',
+          title: 'Economic Security & Trade Lexicon: Japanese Defense Trade, Supply Chain Resilience, and Sanctions Terminology',
+          targetTime: '15-20 min',
+          level: 'High C1',
+          pedagogicalObjective: 'Master the contemporary Japanese legal and policy vocabulary surrounding the Economic Security Promotion Act (経済安全保障推進法), export controls (外為法), and critical technology governance.',
+          diagnosticFocus: [
+            'Deploying technical policy terms accurately: 「特定重要物資」、「基幹インフラ役務の安定的な提供」、「機微技術管理」、and 「サプライチェーン強靱化」.',
+            'Analyzing and drafting formal commentary on multilateral export controls, dual-use technology restrictions (軍民両用技術), and strategic autonomy.'
+          ],
+          substantiveContext: 'METI (経済産業省) trade control briefings, Japanese economic statecraft seminars, and Indo-Pacific security dialogues.'
+        },
+        {
+          id: 'jpn-08',
+          track: 'japanese',
+          module: 'Oral Academic & Executive Delivery',
+          title: 'Delivering Scholarly Critique: Asking Pointed, Polite Research Questions Without Triggering Face-Threat',
+          targetTime: '15-20 min',
+          level: 'High C1',
+          pedagogicalObjective: 'Formulate incisive methodological or theoretical questions during Japanese academic Q&A sessions while framing the critique with scholarly deference and collaborative inquiry.',
+          diagnosticFocus: [
+            'Framing a methodological challenge (e.g., endogeneity or sample selection bias) using deferential openings like 「大変示唆に富むご発表をありがとうございました。一点、方法論に関してご教示いただきたいのですが…」.',
+            'Using softeners such as 「〜という可能性は排除できないのではないでしょうか」 or 「〜についてはどのようにお考えでしょうか」 to probe core assumptions politely.'
+          ],
+          substantiveContext: 'Acting as a formal discussant (討論者) or asking floor questions at a Japanese economics or political science workshop.'
+        },
+        {
+          id: 'jpn-09',
+          track: 'japanese',
+          module: 'Oral Academic & Executive Delivery',
+          title: 'Slide Presentations & Narration: Professional Transitions, Signaling Causality, and Highlighting Empirical Anomalies',
+          targetTime: '15-20 min',
+          level: 'High C1',
+          pedagogicalObjective: 'Direct audience attention across complex empirical charts and regression tables in spoken Japanese, signaling key causal mechanisms and unexpected empirical anomalies smoothly.',
+          diagnosticFocus: [
+            'Directing visual focus cleanly: 「こちらの図表2の右側の列をご覧いただけますでしょうか」 and 「特筆すべき点は、…という結果が観察されたことです」.',
+            'Explaining counter-intuitive findings or robustness checks orally using 「一見すると直観に反するように思われますが、これは〜に起因するものと解釈できます」.'
+          ],
+          substantiveContext: 'Delivering a 20-minute empirical research presentation in Japanese to faculty or policy researchers.'
+        },
+        {
+          id: 'jpn-10',
+          track: 'japanese',
+          module: 'Oral Academic & Executive Delivery',
+          title: 'Meeting Facilitation: Navigating Conflicting Viewpoints and Summarizing Institutional Consensus',
+          targetTime: '15-20 min',
+          level: 'High C1',
+          pedagogicalObjective: 'Facilitate multi-stakeholder Japanese meetings by acknowledging divergent views neutrally, synthesizing common ground (落としどころ), and confirming actionable next steps.',
+          diagnosticFocus: [
+            'Bridging opposing viewpoints diplomatically: 「A先生の仰る〜という観点も重要ですが、他方でB先生のご指摘された〜という実務上の制約も踏まえますと…」.',
+            'Summarizing consensus and locking in action items: 「本日の議論を整理いたしますと、大枠としては〜という方向性で合意形成が図られたかと存じます」.'
+          ],
+          substantiveContext: 'Joint international research committee meetings, advisory board deliberations, and cross-functional project reviews.'
+        }
+      ];
+
+      // Normalize Pe-04 id to pe-04 cleanly if needed
+      CURRICULUM_MODULES.forEach(function (m) {
+        if (m.id === 'polecon-04') {
+          m.id = 'pe-04';
+        }
+      });
+
+      // Application State
+      let userProgress = {};
+      let activeTrackFilter = 'all';
+      let activeStatusFilter = 'all';
+      let searchQuery = '';
+      let activeModalModuleId = null;
+      let expandedNotesMap = {};
+
+      // Safe localStorage Wrapper
+      function loadStateFromStorage() {
+        const defaults = {};
+        CURRICULUM_MODULES.forEach(function (mod) {
+          defaults[mod.id] = {
+            status: 'Not Started',
+            score: 0,
+            notes: '',
+            updatedAt: null
+          };
+        });
+
+        try {
+          const raw = window.localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            userProgress = defaults;
+            return;
+          }
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') {
+            CURRICULUM_MODULES.forEach(function (mod) {
+              const saved = parsed[mod.id];
+              if (saved && typeof saved === 'object') {
+                const validStatuses = ['Not Started', 'In Progress', 'Mastered', 'Review Needed'];
+                const status = validStatuses.indexOf(saved.status) !== -1 ? saved.status : 'Not Started';
+                const scoreNum = Number(saved.score);
+                const score = (!isNaN(scoreNum) && scoreNum >= 0 && scoreNum <= 5) ? Math.round(scoreNum) : 0;
+                const notes = typeof saved.notes === 'string' ? saved.notes : '';
+                defaults[mod.id] = {
+                  status: status,
+                  score: score,
+                  notes: notes,
+                  updatedAt: saved.updatedAt || null
+                };
+              }
+            });
+          }
+          userProgress = defaults;
+        } catch (err) {
+          userProgress = defaults;
+          updateStorageIndicator(false);
+        }
+      }
+
+      function saveStateToStorage() {
+        try {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(userProgress));
+          updateStorageIndicator(true);
+        } catch (err) {
+          updateStorageIndicator(false);
+        }
+      }
+
+      function updateStorageIndicator(ok) {
+        const el = document.getElementById('storage-indicator');
+        if (!el) return;
+        if (ok) {
+          el.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Auto-saved locally</span>';
+        } else {
+          el.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>In-memory mode (localStorage restricted)</span>';
+        }
+      }
+
+      // Toast helper
+      function showToast(message, type) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        const colorClasses = type === 'error'
+          ? 'bg-rose-950 border-rose-700 text-rose-200'
+          : 'bg-slate-800 border-emerald-500/50 text-slate-100';
+        toast.className = 'pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-xl text-xs font-medium transition-all duration-300 ' + colorClasses;
+        toast.innerHTML =
+          '<span class="w-2 h-2 rounded-full ' + (type === 'error' ? 'bg-rose-400' : 'bg-emerald-400') + '"></span>' +
+          '<span>' + escapeHtml(message) + '</span>';
+        container.appendChild(toast);
+        setTimeout(function () {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(6px)';
+          setTimeout(function () {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+          }, 250);
+        }, 2800);
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      // Standardized Prompt Assembly (Exact specification adherence)
+      function buildStandardizedPrompt(mod) {
+        const trackMeta = TRACK_META[mod.track];
+        const diag1 = mod.diagnosticFocus[0] || 'Test foundational intuition.';
+        const diag2 = mod.diagnosticFocus[1] || 'Test concrete manipulation, derivation, or translation.';
+
+        return [
+          '[SYSTEM INSTRUCTION: INTERACTIVE LEARNING MODE]',
+          'Role: Elite university tutor and pedagogy specialist.',
+          'Track: ' + trackMeta.name,
+          'Target Lesson: ' + mod.title,
+          'Allocated Time: ' + mod.targetTime,
+          'Target Register/Standard: ' + mod.level,
+          'Pedagogical Objective: ' + mod.pedagogicalObjective,
+          '',
+          'PEDAGOGICAL PROTOCOL:',
+          'Phase 1: Diagnostic Triangulation (DO NOT output the full lesson yet).',
+          '',
+          '1. Provide a 2-sentence intuitive, non-jargon overview of this topic.',
+          '2. Ask exactly 2 diagnostic questions:',
+          '  - Question 1 (Conceptual): Test foundational intuition (' + diag1 + ').',
+          '  - Question 2 (Mechanic/Applied): Test concrete manipulation, derivation, or translation (' + diag2 + ').',
+          '3. Pause and wait for my response.',
+          '',
+          'Phase 2: Calibrated Instruction (Triggered after my answer).',
+          '',
+          '- If diagnostic reveals gaps: Build intuition first with concrete examples before formalizing.',
+          '- If diagnostic shows proficiency: Advance immediately to edge cases, formal mathematical derivation, or subtle register contrasts.',
+          '- Incorporate substantive domain context: ' + mod.substantiveContext + '.',
+          '',
+          'Phase 3: Active Application Drill.',
+          '',
+          '- Present 1 rigorous challenge problem requiring active production (derivation, error-correction, or formal drafting). Guide me to correct execution.',
+          '',
+          'Phase 4: Session Mastery Ledger.',
+          '',
+          '- Output a closing JSON snippet logging mastery score (1-5), key takeaways, and next steps.',
+          '',
+          'Please initiate Phase 1 now.'
+        ].join('\n');
+      }
+
+      // Update Top Dashboard Metrics
+      function renderMetrics() {
+        const total = CURRICULUM_MODULES.length;
+        let totalMastered = 0;
+        let totalScoredCount = 0;
+        let totalScoreSum = 0;
+
+        const trackStats = {
+          calculus: { total: 0, mastered: 0, inProgress: 0, review: 0, scoreSum: 0, scoredCount: 0 },
+          econometrics: { total: 0, mastered: 0, inProgress: 0, review: 0, scoreSum: 0, scoredCount: 0 },
+          polecon: { total: 0, mastered: 0, inProgress: 0, review: 0, scoreSum: 0, scoredCount: 0 },
+          mandarin: { total: 0, mastered: 0, inProgress: 0, review: 0, scoreSum: 0, scoredCount: 0 },
+          japanese: { total: 0, mastered: 0, inProgress: 0, review: 0, scoreSum: 0, scoredCount: 0 }
+        };
+
+        CURRICULUM_MODULES.forEach(function (mod) {
+          const state = userProgress[mod.id] || { status: 'Not Started', score: 0 };
+          const st = trackStats[mod.track];
+          if (!st) return;
+          st.total += 1;
+
+          if (state.status === 'Mastered') {
+            totalMastered += 1;
+            st.mastered += 1;
+          } else if (state.status === 'In Progress') {
+            st.inProgress += 1;
+          } else if (state.status === 'Review Needed') {
+            st.review += 1;
+          }
+
+          if (state.score > 0) {
+            totalScoredCount += 1;
+            totalScoreSum += state.score;
+            st.scoredCount += 1;
+            st.scoreSum += state.score;
+          }
+        });
+
+        const overallPct = total > 0 ? Math.round((totalMastered / total) * 100) : 0;
+        document.getElementById('metric-overall-pct').textContent = overallPct + '%';
+        document.getElementById('bar-overall').style.width = overallPct + '%';
+        document.getElementById('metric-overall-counts').textContent = totalMastered + ' / ' + total + ' Mastered';
+        document.getElementById('metric-overall-avg').textContent =
+          totalScoredCount > 0
+            ? 'Avg: ' + (totalScoreSum / totalScoredCount).toFixed(1) + '/5'
+            : 'Avg: —';
+
+        // Per-track updates
+        ['calculus', 'econometrics', 'polecon', 'mandarin', 'japanese'].forEach(function (trackKey) {
+          const prefix = trackKey === 'econometrics' ? 'econ' : trackKey;
+          const st = trackStats[trackKey];
+          const pct = st.total > 0 ? Math.round((st.mastered / st.total) * 100) : 0;
+
+          document.getElementById('metric-' + prefix + '-count').textContent = st.mastered + ' / ' + st.total;
+          document.getElementById('bar-' + prefix).style.width = pct + '%';
+          document.getElementById('status-breakdown-' + prefix).textContent =
+            st.inProgress + ' Active • ' + st.review + ' Review';
+          document.getElementById('avg-' + prefix).textContent =
+            st.scoredCount > 0 ? '★ ' + (st.scoreSum / st.scoredCount).toFixed(1) : '★ —';
+        });
+      }
+
+      // Status Badge Styling Helper
+      function getStatusSelectClasses(status) {
+        switch (status) {
+          case 'Mastered':
+            return 'bg-emerald-950/80 text-emerald-300 border-emerald-600/60';
+          case 'In Progress':
+            return 'bg-sky-950/80 text-sky-300 border-sky-600/60';
+          case 'Review Needed':
+            return 'bg-amber-950/80 text-amber-300 border-amber-600/60';
+          default:
+            return 'bg-slate-900 text-slate-300 border-slate-700';
+        }
+      }
+
+      // Render Filtered Modules Grid
+      function renderModulesGrid() {
+        const grid = document.getElementById('modules-grid');
+        const emptyState = document.getElementById('empty-state');
+        const showingCount = document.getElementById('showing-count');
+
+        const q = searchQuery.trim().toLowerCase();
+
+        const filtered = CURRICULUM_MODULES.filter(function (mod) {
+          const state = userProgress[mod.id] || { status: 'Not Started', score: 0, notes: '' };
+          if (activeTrackFilter !== 'all' && mod.track !== activeTrackFilter) {
+            return false;
+          }
+          if (activeStatusFilter !== 'all' && state.status !== activeStatusFilter) {
+            return false;
+          }
+          if (q) {
+            const haystack = [
+              mod.id,
+              mod.module,
+              mod.title,
+              mod.level,
+              mod.pedagogicalObjective,
+              mod.substantiveContext,
+              mod.diagnosticFocus.join(' '),
+              state.notes
+            ].join(' ').toLowerCase();
+            if (haystack.indexOf(q) === -1) {
+              return false;
+            }
+          }
+          return true;
+        });
+
+        showingCount.textContent = String(filtered.length);
+
+        if (filtered.length === 0) {
+          grid.innerHTML = '';
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        emptyState.classList.add('hidden');
+
+        const htmlParts = filtered.map(function (mod) {
+          const meta = TRACK_META[mod.track];
+          const state = userProgress[mod.id] || { status: 'Not Started', score: 0, notes: '' };
+          const isNotesExpanded = Boolean(expandedNotesMap[mod.id]);
+          const hasNotes = state.notes && state.notes.trim().length > 0;
+
+          // Build 1-5 rating buttons
+          let ratingButtonsHtml = '';
+          for (let i = 1; i <= 5; i++) {
+            const active = state.score >= i;
+            const btnColor = active
+              ? meta.ratingActiveClass
+              : 'bg-slate-900 text-slate-400 hover:bg-slate-700 border-slate-700';
+            ratingButtonsHtml +=
+              '<button type="button" data-action="rate" data-id="' + mod.id + '" data-score="' + i + '" ' +
+              'title="Set Mastery Score to ' + i + '" ' +
+              'class="w-6 h-6 rounded text-[11px] border transition-colors cursor-pointer flex items-center justify-center ' + btnColor + '">' +
+              i +
+              '</button>';
+          }
+
+          return (
+            '<article data-card-id="' + mod.id + '" class="bg-slate-800 border ' + meta.borderClass + ' rounded-xl shadow-md flex flex-col justify-between transition-all duration-200 overflow-hidden group">' +
+              '<div>' +
+                '<div class="h-1 w-full ' + meta.topBarClass + '"></div>' +
+                '<div class="p-5 space-y-3.5">' +
+                  '<!-- Top Meta Row -->' +
+                  '<div class="flex items-center justify-between gap-2 flex-wrap">' +
+                    '<div class="flex items-center gap-1.5 flex-wrap">' +
+                      '<span class="px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider ' + meta.badgeClass + '">' +
+                        escapeHtml(meta.shortName) +
+                      '</span>' +
+                      '<span class="text-[11px] font-mono text-slate-400 bg-slate-900/90 px-2 py-0.5 rounded border border-slate-700/80">' +
+                        escapeHtml(mod.id) +
+                      '</span>' +
+                    '</div>' +
+                    '<div class="flex items-center gap-1.5">' +
+                      '<span class="inline-flex items-center gap-1 text-[11px] text-slate-300 bg-slate-900/90 px-2 py-0.5 rounded border border-slate-700/80">' +
+                        '<svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>' +
+                        escapeHtml(mod.targetTime) +
+                      '</span>' +
+                      '<span class="text-[11px] font-medium text-slate-300 bg-slate-900/90 px-2 py-0.5 rounded border border-slate-700/80">' +
+                        escapeHtml(mod.level) +
+                      '</span>' +
+                    '</div>' +
+                  '</div>' +
+
+                  '<!-- Module Category & Clickable Title -->' +
+                  '<div>' +
+                    '<div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">' + escapeHtml(mod.module) + '</div>' +
+                    '<h3 data-action="open-modal" data-id="' + mod.id + '" class="text-sm sm:text-base font-bold text-white mt-1 leading-snug group-hover:text-emerald-300 transition-colors cursor-pointer">' +
+                      escapeHtml(mod.title) +
+                    '</h3>' +
+                  '</div>' +
+
+                  '<!-- Pedagogical Objective -->' +
+                  '<p class="text-xs text-slate-300 leading-relaxed">' +
+                    escapeHtml(mod.pedagogicalObjective) +
+                  '</p>' +
+
+                  '<!-- Substantive Framing Box -->' +
+                  '<div class="bg-slate-900/75 border border-slate-700/70 rounded-lg p-2.5 text-[11px] space-y-1.5">' +
+                    '<div>' +
+                      '<span class="font-semibold text-slate-400">Context: </span>' +
+                      '<span class="text-slate-300">' + escapeHtml(mod.substantiveContext) + '</span>' +
+                    '</div>' +
+                    '<div>' +
+                      '<span class="font-semibold text-slate-400">Phase 1 Diagnostics: </span>' +
+                      '<span class="text-slate-400">1) ' + escapeHtml(mod.diagnosticFocus[0]) + ' 2) ' + escapeHtml(mod.diagnosticFocus[1]) + '</span>' +
+                    '</div>' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+
+              '<!-- Bottom Interactive Controls Footer -->' +
+              '<div class="px-5 pb-4 pt-3 bg-slate-900/50 border-t border-slate-700/70 space-y-3">' +
+                '<!-- Status & Mastery Score Row -->' +
+                '<div class="flex items-center justify-between gap-2 flex-wrap">' +
+                  '<select data-action="status-change" data-id="' + mod.id + '" aria-label="Status for ' + escapeHtml(mod.id) + '" class="text-xs font-medium rounded-lg px-2.5 py-1.5 border focus:outline-none cursor-pointer transition-colors ' + getStatusSelectClasses(state.status) + '">' +
+                    '<option value="Not Started" ' + (state.status === 'Not Started' ? 'selected' : '') + '>Not Started</option>' +
+                    '<option value="In Progress" ' + (state.status === 'In Progress' ? 'selected' : '') + '>In Progress</option>' +
+                    '<option value="Mastered" ' + (state.status === 'Mastered' ? 'selected' : '') + '>Mastered</option>' +
+                    '<option value="Review Needed" ' + (state.status === 'Review Needed' ? 'selected' : '') + '>Review Needed</option>' +
+                  '</select>' +
+
+                  '<div class="flex items-center gap-1" aria-label="Mastery Rating 1 to 5">' +
+                    '<span class="text-[11px] text-slate-400 mr-1">Mastery:</span>' +
+                    ratingButtonsHtml +
+                  '</div>' +
+                '</div>' +
+
+                '<!-- Action Buttons: Notes Toggle & Launch Prompt Modal -->' +
+                '<div class="flex items-center justify-between gap-2 pt-1">' +
+                  '<button type="button" data-action="toggle-notes" data-id="' + mod.id + '" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors cursor-pointer">' +
+                    '<svg class="w-3.5 h-3.5 ' + (hasNotes ? 'text-emerald-400' : 'text-slate-400') + '" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">' +
+                      '<path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />' +
+                    '</svg>' +
+                    '<span>Session Notes' + (hasNotes ? ' •' : '') + '</span>' +
+                  '</button>' +
+
+                  '<button type="button" data-action="open-modal" data-id="' + mod.id + '" class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ' + meta.btnClass + '">' +
+                    '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">' +
+                      '<path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />' +
+                    '</svg>' +
+                    '<span>Launch Prompt Engine</span>' +
+                  '</button>' +
+                '</div>' +
+
+                '<!-- Expandable Session Notes Textarea -->' +
+                '<div id="notes-panel-' + mod.id + '" class="' + (isNotesExpanded ? 'block' : 'hidden') + ' pt-2 border-t border-slate-700/60 space-y-1.5">' +
+                  '<div class="flex items-center justify-between text-[11px] text-slate-400">' +
+                    '<label for="notes-textarea-' + mod.id + '">Personal Takeaways / Phase 4 JSON Ledger:</label>' +
+                    '<span id="notes-saved-' + mod.id + '" class="text-emerald-400 font-mono text-[10px]">Saved</span>' +
+                  '</div>' +
+                  '<textarea id="notes-textarea-' + mod.id + '" data-action="notes-input" data-id="' + mod.id + '" rows="4" placeholder="Paste your Phase 4 Session Mastery Ledger JSON or type key takeaways here..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 font-mono placeholder-slate-500 focus:outline-none focus:border-emerald-500">' +
+                    escapeHtml(state.notes) +
+                  '</textarea>' +
+                '</div>' +
+              '</div>' +
+            '</article>'
+          );
+        });
+
+        grid.innerHTML = htmlParts.join('');
+      }
+
+      // Update Track Filter Tabs Visual State
+      function updateTrackTabsUI() {
+        const tabs = document.querySelectorAll('.track-tab');
+        tabs.forEach(function (tab) {
+          const track = tab.getAttribute('data-track-tab');
+          const isSelected = track === activeTrackFilter;
+          if (isSelected) {
+            if (track === 'all') {
+              tab.className = 'track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-slate-100 text-slate-900 shadow-sm';
+            } else if (track === 'calculus') {
+              tab.className = 'track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-cyan-500 text-slate-950 shadow-sm';
+            } else if (track === 'econometrics') {
+              tab.className = 'track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-emerald-500 text-slate-950 shadow-sm';
+            } else if (track === 'polecon') {
+              tab.className = 'track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-rose-500 text-white shadow-sm';
+            } else if (track === 'mandarin') {
+              tab.className = 'track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-amber-500 text-slate-950 shadow-sm';
+            } else if (track === 'japanese') {
+              tab.className = 'track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-indigo-500 text-white shadow-sm';
+            }
+          } else {
+            if (track === 'all') {
+              tab.className = 'track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-slate-900/70 text-slate-300 hover:bg-slate-700 border border-slate-700';
+            } else if (track === 'calculus') {
+              tab.className = 'track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-slate-900/70 text-cyan-300 hover:bg-cyan-950/50 border border-cyan-500/30';
+            } else if (track === 'econometrics') {
+              tab.className = 'track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-slate-900/70 text-emerald-300 hover:bg-emerald-950/50 border border-emerald-500/30';
+            } else if (track === 'polecon') {
+              tab.className = 'track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-slate-900/70 text-rose-300 hover:bg-rose-950/50 border border-rose-500/30';
+            } else if (track === 'mandarin') {
+              tab.className = 'track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-slate-900/70 text-amber-300 hover:bg-amber-950/50 border border-amber-500/30';
+            } else if (track === 'japanese') {
+              tab.className = 'track-tab px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-slate-900/70 text-indigo-300 hover:bg-indigo-950/50 border border-indigo-500/30';
+            }
+          }
+        });
+      }
+
+      // Open Prompt Generator Modal
+      function openPromptModal(moduleId) {
+        const mod = CURRICULUM_MODULES.find(function (m) { return m.id === moduleId; });
+        if (!mod) return;
+
+        activeModalModuleId = moduleId;
+        const meta = TRACK_META[mod.track];
+        const state = userProgress[mod.id] || { status: 'Not Started', score: 0, notes: '' };
+
+        const badgeEl = document.getElementById('modal-track-badge');
+        badgeEl.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide ' + meta.badgeClass;
+        badgeEl.textContent = meta.shortName;
+
+        document.getElementById('modal-module-group').textContent = mod.module;
+        document.getElementById('modal-id-badge').textContent = mod.id;
+        document.getElementById('modal-title').textContent = mod.title;
+        document.getElementById('modal-time').textContent = mod.targetTime;
+        document.getElementById('modal-level').textContent = mod.level;
+        document.getElementById('modal-status-select').value = state.status;
+        document.getElementById('modal-objective').textContent = mod.pedagogicalObjective;
+        document.getElementById('modal-context').textContent = mod.substantiveContext;
+
+        const diagList = document.getElementById('modal-diagnostic-list');
+        diagList.innerHTML = mod.diagnosticFocus.map(function (d) {
+          return '<li>' + escapeHtml(d) + '</li>';
+        }).join('');
+
+        const promptText = buildStandardizedPrompt(mod);
+        document.getElementById('modal-prompt-textarea').value = promptText;
+
+        const modal = document.getElementById('prompt-modal');
+        modal.classList.remove('hidden');
+      }
+
+      function closePromptModal() {
+        const modal = document.getElementById('prompt-modal');
+        modal.classList.add('hidden');
+        activeModalModuleId = null;
+      }
+
+      // Copy Prompt with Fallback
+      function copyPromptToClipboard() {
+        const textarea = document.getElementById('modal-prompt-textarea');
+        if (!textarea) return;
+        const textToCopy = textarea.value;
+
+        function onCopySuccess() {
+          const btn = document.getElementById('btn-copy-prompt');
+          const btnText = document.getElementById('copy-btn-text');
+          btnText.textContent = 'Copied!';
+          btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+          btn.classList.add('bg-emerald-500', 'text-slate-950');
+
+          // Automatically set module to "In Progress" if it was "Not Started"
+          if (activeModalModuleId && userProgress[activeModalModuleId] && userProgress[activeModalModuleId].status === 'Not Started') {
+            userProgress[activeModalModuleId].status = 'In Progress';
+            userProgress[activeModalModuleId].updatedAt = new Date().toISOString();
+            document.getElementById('modal-status-select').value = 'In Progress';
+            saveStateToStorage();
+            renderMetrics();
+            renderModulesGrid();
+          }
+
+          showToast('Interactive Learning Prompt copied to clipboard!', 'success');
+
+          setTimeout(function () {
+            btnText.textContent = 'Copy Prompt to Clipboard';
+            btn.classList.remove('bg-emerald-500', 'text-slate-950');
+            btn.classList.add('bg-emerald-600', 'hover:bg-emerald-500', 'text-white');
+          }, 2000);
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(textToCopy).then(onCopySuccess).catch(function () {
+            fallbackCopy(textarea, onCopySuccess);
+          });
+        } else {
+          fallbackCopy(textarea, onCopySuccess);
+        }
+      }
+
+      function fallbackCopy(textareaEl, callback) {
+        try {
+          textareaEl.focus();
+          textareaEl.select();
+          document.execCommand('copy');
+          callback();
+        } catch (err) {
+          showToast('Unable to auto-copy. Please press Ctrl+C / Cmd+C inside the prompt box.', 'error');
+        }
+      }
+
+      // Export JSON Backup
+      function exportJsonBackup() {
+        const payload = {
+          portalVersion: '3.0',
+          exportedAt: new Date().toISOString(),
+          progress: userProgress
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const dateStamp = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = 'scholar-os-study-progress-' + dateStamp + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Exported study progress JSON backup.', 'success');
+      }
+
+      // Import JSON Backup
+      function handleImportJsonFile(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const parsed = JSON.parse(String(e.target.result));
+            const sourceMap = (parsed && parsed.progress && typeof parsed.progress === 'object')
+              ? parsed.progress
+              : parsed;
+
+            if (!sourceMap || typeof sourceMap !== 'object') {
+              throw new Error('Invalid JSON structure');
+            }
+
+            let importedCount = 0;
+            const validStatuses = ['Not Started', 'In Progress', 'Mastered', 'Review Needed'];
+
+            CURRICULUM_MODULES.forEach(function (mod) {
+              if (sourceMap[mod.id] && typeof sourceMap[mod.id] === 'object') {
+                const item = sourceMap[mod.id];
+                const status = validStatuses.indexOf(item.status) !== -1 ? item.status : 'Not Started';
+                const scoreNum = Number(item.score);
+                const score = (!isNaN(scoreNum) && scoreNum >= 0 && scoreNum <= 5) ? Math.round(scoreNum) : 0;
+                const notes = typeof item.notes === 'string' ? item.notes : '';
+                userProgress[mod.id] = {
+                  status: status,
+                  score: score,
+                  notes: notes,
+                  updatedAt: item.updatedAt || new Date().toISOString()
+                };
+                importedCount += 1;
+              }
+            });
+
+            if (importedCount === 0) {
+              showToast('No matching module IDs found in imported JSON file.', 'error');
+              return;
+            }
+
+            saveStateToStorage();
+            renderMetrics();
+            renderModulesGrid();
+            showToast('Imported progress for ' + importedCount + ' modules!', 'success');
+          } catch (err) {
+            showToast('Failed to parse JSON backup file.', 'error');
+          } finally {
+            event.target.value = '';
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      // Event Listeners Setup
+      function bindEvents() {
+        // Track Tabs
+        document.querySelectorAll('.track-tab').forEach(function (tab) {
+          tab.addEventListener('click', function () {
+            activeTrackFilter = tab.getAttribute('data-track-tab') || 'all';
+            updateTrackTabsUI();
+            renderModulesGrid();
+          });
+        });
+
+        // Search input
+        const searchInput = document.getElementById('input-search');
+        const clearSearchBtn = document.getElementById('btn-clear-search');
+        searchInput.addEventListener('input', function (e) {
+          searchQuery = e.target.value;
+          if (searchQuery.trim().length > 0) {
+            clearSearchBtn.classList.remove('hidden');
+          } else {
+            clearSearchBtn.classList.add('hidden');
+          }
+          renderModulesGrid();
+        });
+
+        clearSearchBtn.addEventListener('click', function () {
+          searchQuery = '';
+          searchInput.value = '';
+          clearSearchBtn.classList.add('hidden');
+          renderModulesGrid();
+        });
+
+        // Status filter
+        const statusSelect = document.getElementById('select-status-filter');
+        statusSelect.addEventListener('change', function (e) {
+          activeStatusFilter = e.target.value;
+          renderModulesGrid();
+        });
+
+        // Reset Filters Button in Empty State
+        document.getElementById('btn-reset-filters').addEventListener('click', function () {
+          activeTrackFilter = 'all';
+          activeStatusFilter = 'all';
+          searchQuery = '';
+          searchInput.value = '';
+          statusSelect.value = 'all';
+          clearSearchBtn.classList.add('hidden');
+          updateTrackTabsUI();
+          renderModulesGrid();
+        });
+
+        // Delegated Clicks & Changes on Modules Grid
+        const grid = document.getElementById('modules-grid');
+
+        grid.addEventListener('click', function (e) {
+          const target = e.target.closest('[data-action]');
+          if (!target) return;
+          const action = target.getAttribute('data-action');
+          const id = target.getAttribute('data-id');
+          if (!id) return;
+
+          if (action === 'open-modal') {
+            openPromptModal(id);
+          } else if (action === 'rate') {
+            const clickedScore = Number(target.getAttribute('data-score'));
+            if (!userProgress[id]) return;
+            userProgress[id].score = userProgress[id].score === clickedScore ? 0 : clickedScore;
+            userProgress[id].updatedAt = new Date().toISOString();
+            saveStateToStorage();
+            renderMetrics();
+            renderModulesGrid();
+          } else if (action === 'toggle-notes') {
+            expandedNotesMap[id] = !expandedNotesMap[id];
+            const panel = document.getElementById('notes-panel-' + id);
+            if (panel) {
+              panel.classList.toggle('hidden', !expandedNotesMap[id]);
+              if (expandedNotesMap[id]) {
+                const ta = document.getElementById('notes-textarea-' + id);
+                if (ta) ta.focus();
+              }
+            }
+          }
+        });
+
+        grid.addEventListener('change', function (e) {
+          const target = e.target.closest('[data-action="status-change"]');
+          if (!target) return;
+          const id = target.getAttribute('data-id');
+          if (!id || !userProgress[id]) return;
+          userProgress[id].status = target.value;
+          userProgress[id].updatedAt = new Date().toISOString();
+          saveStateToStorage();
+          renderMetrics();
+          renderModulesGrid();
+        });
+
+        grid.addEventListener('input', function (e) {
+          const target = e.target.closest('[data-action="notes-input"]');
+          if (!target) return;
+          const id = target.getAttribute('data-id');
+          if (!id || !userProgress[id]) return;
+          userProgress[id].notes = target.value;
+          userProgress[id].updatedAt = new Date().toISOString();
+          saveStateToStorage();
+          const savedLabel = document.getElementById('notes-saved-' + id);
+          if (savedLabel) {
+            savedLabel.textContent = 'Saved just now';
+          }
+        });
+
+        // Modal Controls
+        document.getElementById('btn-close-modal').addEventListener('click', closePromptModal);
+        document.getElementById('btn-close-modal-footer').addEventListener('click', closePromptModal);
+        document.getElementById('btn-copy-prompt').addEventListener('click', copyPromptToClipboard);
+
+        document.getElementById('modal-status-select').addEventListener('change', function (e) {
+          if (!activeModalModuleId || !userProgress[activeModalModuleId]) return;
+          userProgress[activeModalModuleId].status = e.target.value;
+          userProgress[activeModalModuleId].updatedAt = new Date().toISOString();
+          saveStateToStorage();
+          renderMetrics();
+          renderModulesGrid();
+        });
+
+        // Close modal when clicking backdrop
+        document.getElementById('prompt-modal').addEventListener('click', function (e) {
+          if (e.target.id === 'prompt-modal') {
+            closePromptModal();
+          }
+        });
+
+        // Export & Import JSON
+        document.getElementById('btn-export-json').addEventListener('click', exportJsonBackup);
+        document.getElementById('btn-import-trigger').addEventListener('click', function () {
+          document.getElementById('input-import-json').click();
+        });
+        document.getElementById('input-import-json').addEventListener('change', handleImportJsonFile);
+
+        // Reset All Progress Modal
+        const resetModal = document.getElementById('reset-modal');
+        document.getElementById('btn-reset-trigger').addEventListener('click', function () {
+          resetModal.classList.remove('hidden');
+        });
+        document.getElementById('btn-cancel-reset').addEventListener('click', function () {
+          resetModal.classList.add('hidden');
+        });
+        document.getElementById('btn-confirm-reset').addEventListener('click', function () {
+          CURRICULUM_MODULES.forEach(function (mod) {
+            userProgress[mod.id] = {
+              status: 'Not Started',
+              score: 0,
+              notes: '',
+              updatedAt: null
+            };
+          });
+          expandedNotesMap = {};
+          saveStateToStorage();
+          renderMetrics();
+          renderModulesGrid();
+          resetModal.classList.add('hidden');
+          showToast('All study progress has been reset.', 'success');
+        });
+
+        // Escape key closes open modals
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') {
+            closePromptModal();
+            resetModal.classList.add('hidden');
+          }
+        });
+      }
+
+      // Initialize Portal
+      function init() {
+        loadStateFromStorage();
+        bindEvents();
+        updateTrackTabsUI();
+        renderMetrics();
+        renderModulesGrid();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+</body>
+</html>
